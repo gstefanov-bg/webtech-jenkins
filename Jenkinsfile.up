@@ -56,7 +56,7 @@ pipeline {
         script {
           def scmResult = resolveScm(
             source: [
-              $class: 'GitSCMSource', id: '_', credentialsId: 'ssh-key',
+              $class: 'GitSCMSource', id: '_', credentialsId: 'github-webtech-jenkins',
               traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']],
               remote: "git@github.com:gstefanov-bg/webtech.git"
             ],
