@@ -1,0 +1,93 @@
+#!groovy
+import groovy.json.JsonOutput
+
+pipeline {
+  agent any
+
+  environment {
+    KUBECONFIG = "/home/jenkins/.kube/config"
+    //DOCKER_REGISTRY = "601303390846.dkr.ecr.us-east-1.amazonaws.com" // ???
+
+    LOWERCASE_BRANCH="${BRANCH.toLowerCase()}"
+    SUBDOMAIN = "${(params.NAMESPACE?.trim()?.toLowerCase()) ?: env.LOWERCASE_BRANCH}"
+    NAMESPACE = "${SUBDOMAIN.replaceAll('^[0-9]', '').replaceAll('[^a-z0-9]', '-').replaceAll('-+', '-').replaceAll('(^-+|-+$)', '').take(63)}"
+    NAMESPACE_SUBDOMAIN = "${NAMESPACE}.${CLUSTER}"
+  }
+
+  options {
+    buildDiscarder(logRotator(daysToKeepStr: '14'))
+    //disableConcurrentBuilds()
+  }
+
+  parameters {
+    string(defaultValue: 'main', description: 'WebTech Branch Name', name: 'BRANCH', trim: true)
+  }
+
+  stages {
+    stage('check cluster capacity') {
+      steps {
+        sh "./check_cluster_capacity.sh"
+      }
+    }
+
+    stage('configure namespace') {
+      environment {
+        PARAMS = JsonOutput.prettyPrint(JsonOutput.toJson(params))
+      }
+      steps {
+        withCredentials([[
+          $class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'nexus-docker-registry',
+          usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD'
+        ]]) {
+          wrap([$class: 'BuildUser']) {
+            sh('./create_namespace.sh')
+          }
+        }
+      }
+    }
+
+    stage('initialize apps') {
+      environment {
+        // TODO: we need somewhere "NOT" AWS to store settings
+        HOSTED_ZONE_NAME = "webtech-fmi.bg"
+      }
+      steps {
+        script {
+          def scmResult = resolveScm(
+            source: [
+              $class: 'GitSCMSource', id: '_', credentialsId: 'ssh-key',
+              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']],
+              remote: "git@github.com:gstefanov-bg/webtech.git"
+            ],
+            targets: [env.BRANCH, 'main']
+          )
+
+          // invoke downstream job that should already exist from org scanner
+          def branchName = scmResult.getBranches().get(0).getName()
+          build(
+            job: "gstefanov-bg/web-tech/${hudson.Util.rawEncode(branchName)}",
+            propagate: true, wait: true,
+          )
+        }
+      }
+    }
+
+    stage('wait for deployment') {
+      steps {
+        sh 'kubectl -n $NAMESPACE get deployments --no-headers=true | awk \'{print $1}\' | xargs -n1 kubectl rollout status deployment'
+      }
+    }
+  }
+
+  post {
+    cleanup {
+      cleanWs disableDeferredWipeout: true
+      /* clean up our custom workspace */
+      deleteDir()
+      dir("${workspace}@tmp") {
+        deleteDir()
+      }
+    }
+  }
+}

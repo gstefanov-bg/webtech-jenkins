@@ -1,0 +1,54 @@
+#!groovy
+
+pipeline {
+  agent any
+
+  environment {
+    AWS_CONFIG_FILE = "/home/jenkins/.aws-config"
+    //AWS_CREDENTIALS_ID = "aws-credentials-devops"
+    KUBECONFIG = "/home/jenkins/.kube/config"
+
+    LOWERCASE_BRANCH="${BRANCH.toLowerCase()}"
+    SUBDOMAIN = "${(params.NAMESPACE?.trim()?.toLowerCase()) ?: env.LOWERCASE_BRANCH}"
+    NAMESPACE = "${SUBDOMAIN.replaceAll('^[0-9]', '').replaceAll('[^a-z0-9]', '-').replaceAll('-+', '-').replaceAll('(^-+|-+$)', '').take(63)}"
+  }
+
+  options {
+    buildDiscarder(logRotator(daysToKeepStr: '14')) // how long to keep build logs
+    //disableConcurrentBuilds()
+  }
+
+  parameters {
+    string(defaultValue: 'main', description: 'WebTech Branch Name', name: 'BRANCH')
+  }
+
+  stages {
+    stage('abort build for not-existing namespace') { // FIX
+      when { not { expression { namespaceExists(env.NAMESPACE) } } }
+      steps {
+        error('Could not find namespace ' + env.NAMESPACE)
+      }
+    }
+
+    // only destroy namespace if it exists
+    stage('destroy namespace') {
+      steps {
+        script {
+          sh('./delete_image_tags.sh')
+          sh('./destroy_namespace.sh')
+        }
+      }
+    }
+  }
+
+  post {
+    cleanup {
+      cleanWs disableDeferredWipeout: true
+      /* clean up our custom workspace */
+      deleteDir()
+      dir("${workspace}@tmp") {
+        deleteDir()
+      }
+    }
+  }
+}
