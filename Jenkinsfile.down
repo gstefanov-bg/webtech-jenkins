@@ -1,10 +1,12 @@
 #!groovy
 
 pipeline {
-  agent any
+  agent {
+    label 'regus'
+  }
 
   environment {
-    AWS_CONFIG_FILE = "/home/jenkins/.aws-config"
+    //AWS_CONFIG_FILE = "/home/jenkins/.aws-config"
     //AWS_CREDENTIALS_ID = "aws-credentials-devops"
     KUBECONFIG = "/home/jenkins/.kube/config"
 
@@ -20,22 +22,15 @@ pipeline {
 
   parameters {
     string(defaultValue: 'main', description: 'WebTech Branch Name', name: 'BRANCH')
+    string(defaultValue: 'main', description: 'Namespace', name: 'NAMESPACE')
   }
 
   stages {
-    stage('abort build for not-existing namespace') { // FIX
-      when { not { expression { namespaceExists(env.NAMESPACE) } } }
-      steps {
-        error('Could not find namespace ' + env.NAMESPACE)
-      }
-    }
-
     // only destroy namespace if it exists
     stage('destroy namespace') {
       steps {
         script {
-          sh('./delete_image_tags.sh')
-          sh('./destroy_namespace.sh')
+          sh 'kubectl delete namespace $NAMESPACE -v10'
         }
       }
     }
