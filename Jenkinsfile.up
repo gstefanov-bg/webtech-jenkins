@@ -52,7 +52,7 @@ pipeline {
           // invoke downstream job that should already exist from org scanner
           def branchName = scmResult.getBranches().get(0).getName()
           build(
-            job: "gstefanov-bg/web-tech/${hudson.Util.rawEncode(branchName)}",
+            job: "Pipelines/Webtech/${hudson.Util.rawEncode(branchName)}",
             propagate: true, wait: true,
           )
         }
