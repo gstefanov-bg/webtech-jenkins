@@ -1,0 +1,61 @@
+#!groovy
+
+pipeline {
+  agent {
+    label 'regus'
+  }
+
+//  environment {
+//    CLUSTER_DOMAIN="${params.PLATFORM}.${params.DOMAIN.trim()}"
+//    DOMAIN="${params.DOMAIN.trim()}"
+//    REPO="${GIT_URL.tokenize('/.')[-2]}"
+//    COMMIT="${GIT_COMMIT.substring(0, Math.min(GIT_COMMIT.length(), 6))}"
+//    LOWERCASE_BRANCH="${GIT_BRANCH.toLowerCase().replaceAll('^[0-9]', '').replaceAll('[^a-z0-9]', '-').replaceAll('-+', '-').replaceAll('(^-+|-+$)', '').take(63)}"
+//    NAMESPACE="${env.LOWERCASE_BRANCH}"
+//    DOCKER_REGISTRY="public.ecr.aws/l3o9e9m9"
+//    AWS_CREDENTIALS_ID="aws-credentials-devops"
+//    DOCKER_CREDENTIALS_ID="ecr:eu-central-1:${AWS_CREDENTIALS_ID}"
+//  }
+
+  options {
+    buildDiscarder(logRotator(daysToKeepStr: '14'))
+  }
+
+  parameters {
+    string(defaultValue: 'main', description: 'WebTech Branch Name', name: 'BRANCH')
+    string(defaultValue: '', description: 'Number of parts', name: 'NUMBER')
+  }
+
+  stages {
+//    stage('EnterUserInput') {
+//      steps {
+//        script {
+//          def userInputTxt = input(id: 'inputTextbox', message: 'Please enter JOB Description', parameters: [[$class: 'TextParameterDefinition', description: 'String or Integer etc..', name: 'input']])
+//         echo ("JOB Description is: ${userInputTxt}")
+//        }
+//      }
+//    }
+
+    stage('Upload a file') {
+      steps {
+        script {
+          def inputTXTPath = input message: 'Upload file', parameters: [file(name: 'output.txt', description: 'Upload only txt file')]
+          def txtContent = readFile "${inputTXTPath}"
+          echo ("TXT FILE PATH IS : ${inputTXTPath}")
+          echo("TXT CONTENT IS: ${txtContent}")
+        }
+        echo env.STAGE_NAME
+        echo '=========== Upload a TXT =============='
+      }
+    }
+
+//    stage('Split file') {
+//      steps {
+//        script {
+//          sh ''
+//        }
+//      }
+//    }
+
+  }
+}
