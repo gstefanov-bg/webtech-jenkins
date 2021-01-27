@@ -26,26 +26,9 @@ pipeline {
   }
 
   stages {
-    stage('check cluster capacity') {
-      steps {
-        sh "./check_cluster_capacity.sh"
-      }
-    }
-
     stage('configure namespace') {
-      environment {
-        PARAMS = JsonOutput.prettyPrint(JsonOutput.toJson(params))
-      }
       steps {
-        withCredentials([[
-          $class: 'UsernamePasswordMultiBinding',
-          credentialsId: 'nexus-docker-registry',
-          usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD'
-        ]]) {
-          wrap([$class: 'BuildUser']) {
-            sh('./create_namespace.sh')
-          }
-        }
+        sh('./create_namespace.sh')
       }
     }
 
