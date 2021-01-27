@@ -36,26 +36,23 @@ pipeline {
 //      }
 //    }
 
-    stage('Upload a file') {
+    stage('Get video file') {
       steps {
         script {
-          def inputTXTPath = input message: 'Upload file', parameters: [file(name: 'output.txt', description: 'Upload only txt file')]
-          def txtContent = readFile "${inputTXTPath}"
-          echo ("TXT FILE PATH IS : ${inputTXTPath}")
-          echo("TXT CONTENT IS: ${txtContent}")
+          sh 'wget http://192.168.0.106:8000/input.mp4'
         }
-        echo env.STAGE_NAME
-        echo '=========== Upload a TXT =============='
       }
     }
 
-//    stage('Split file') {
-//      steps {
-//        script {
-//          sh ''
-//        }
-//      }
-//    }
+    stage('Split file') {
+      steps {
+        script {
+          sh 'pwd'
+          sh './split_file.sh "input.mp4" 3'
+          sh 'ls -l'
+        }
+      }
+    }
 
   }
 }
