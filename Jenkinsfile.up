@@ -61,7 +61,7 @@ pipeline {
 
     stage('wait for deployment') {
       steps {
-        sh 'kubectl -n $NAMESPACE get deployments --no-headers=true | awk \'{print $1}\' | xargs -n1 kubectl rollout status deployment'
+        sh 'kubectl -n $NAMESPACE get deployments --no-headers=true | awk \'{print $1}\' | xargs -n1 kubectl -n $NAMESPACE rollout status deployment'
       }
     }
   }
