@@ -5,41 +5,22 @@ pipeline {
     label 'regus'
   }
 
-//  environment {
-//    CLUSTER_DOMAIN="${params.PLATFORM}.${params.DOMAIN.trim()}"
-//    DOMAIN="${params.DOMAIN.trim()}"
-//    REPO="${GIT_URL.tokenize('/.')[-2]}"
-//    COMMIT="${GIT_COMMIT.substring(0, Math.min(GIT_COMMIT.length(), 6))}"
-//    LOWERCASE_BRANCH="${GIT_BRANCH.toLowerCase().replaceAll('^[0-9]', '').replaceAll('[^a-z0-9]', '-').replaceAll('-+', '-').replaceAll('(^-+|-+$)', '').take(63)}"
-//    NAMESPACE="${env.LOWERCASE_BRANCH}"
-//    DOCKER_REGISTRY="public.ecr.aws/l3o9e9m9"
-//    AWS_CREDENTIALS_ID="aws-credentials-devops"
-//    DOCKER_CREDENTIALS_ID="ecr:eu-central-1:${AWS_CREDENTIALS_ID}"
-//  }
-
   options {
     buildDiscarder(logRotator(daysToKeepStr: '14'))
   }
 
   parameters {
-    string(defaultValue: 'main', description: 'WebTech Branch Name', name: 'BRANCH')
+    string(defaultValue: '', description: 'Web Server Address', name: 'WEBSERVER')
+    string(defaultValue: '', description: 'Lecture File Name', name: 'FILENAME')
     string(defaultValue: '', description: 'Number of parts', name: 'NUMBER')
   }
 
   stages {
-//    stage('EnterUserInput') {
-//      steps {
-//        script {
-//          def userInputTxt = input(id: 'inputTextbox', message: 'Please enter JOB Description', parameters: [[$class: 'TextParameterDefinition', description: 'String or Integer etc..', name: 'input']])
-//         echo ("JOB Description is: ${userInputTxt}")
-//        }
-//      }
-//    }
 
     stage('Get video file') {
       steps {
         script {
-          sh 'wget http://192.168.0.106:8000/input.mp4'
+          sh "wget http://$WEBSERVER/$FILENAME"
         }
       }
     }
@@ -47,12 +28,37 @@ pipeline {
     stage('Split file') {
       steps {
         script {
-          sh 'pwd'
-          sh './split_file.sh "input.mp4" 3'
-          sh 'ls -l'
+          sh "./split_file.sh $FILENAME $NUMBER" // in how many chunks do we want to split FILENAME
         }
       }
     }
 
+    stage('compress chunks') {
+      steps {
+        script {
+          chunkList = [:]
+          for( num in 0..params.NUMBER ) {
+            chunkList[num] = compress("output${num}.mp4)
+          }
+
+          parallel chunkList
+        }
+      }
+    }
+  }
+}
+
+def compress(String FileName) {
+  return {
+    stage(FileName) {
+      def branchName = scmResult.getBranches().get(0).getName()
+      build(
+        job: "Pipelines/lectures/compress",
+        propagate: true, wait: true,
+        parameters: [
+          string(name: 'FILENAME', value: "${FileName}"),
+        ]
+      )
+    }
   }
 }

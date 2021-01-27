@@ -1,0 +1,25 @@
+#!groovy
+
+pipeline {
+  agent {
+    label 'regus'
+  }
+
+  options {
+    buildDiscarder(logRotator(daysToKeepStr: '14'))
+  }
+
+  parameters {
+    string(defaultValue: '', description: 'Lecture File Name', name: 'FILENAME')
+  }
+
+  stages {
+    stage('Compress file') {
+      steps {
+        script {
+          sh "ffmpeg -i $FILENAME -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_$FILENAME"
+        }
+      }
+    }
+  }
+}
