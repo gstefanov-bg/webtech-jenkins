@@ -2,7 +2,9 @@
 import groovy.json.JsonOutput
 
 pipeline {
-  agent any
+  agent {
+    label 'regus'
+  }
 
   environment {
     KUBECONFIG = "/home/jenkins/.kube/config"
