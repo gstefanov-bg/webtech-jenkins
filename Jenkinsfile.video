@@ -54,7 +54,7 @@ def compress(String FileName) {
       script {
         sh "pwd"
         sh "ls -l"
-        sh "ffmpeg -i $FILENAME -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_$FILENAME"
+        sh "ffmpeg -i ${FileName} -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_${FileName}"
       }
     }
   }
