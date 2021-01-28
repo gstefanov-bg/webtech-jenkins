@@ -37,7 +37,7 @@ pipeline {
       steps {
         script {
           chunkList = [:]
-          for( num in 0..3 ) {
+          for( num in 1..3 ) {
             chunkList[num] = compress("output${num}.mp4")
           }
 
