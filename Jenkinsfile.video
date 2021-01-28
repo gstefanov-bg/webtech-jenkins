@@ -49,7 +49,15 @@ pipeline {
     stage('append chunks') {
       steps {
         script {
-          sh ""
+          sh "./concat_files.sh $FILENAME $NUMBER"
+        }
+      }
+    }
+
+    stage('upload file') {
+      steps {
+        script {
+          sh "rsync final-$FILENAME ..."
         }
       }
     }

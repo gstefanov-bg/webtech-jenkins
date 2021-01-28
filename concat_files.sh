@@ -1,6 +1,7 @@
 #!/bin/bash
 
-CHUNKS=$1
+FILENAME=$1
+CHUNKS=$2
 LIST_OF_CHUNKS=""
 
 for i in $(seq 1 $(($CHUNKS-1)));
@@ -11,7 +12,7 @@ done
 
 LIST_OF_CHUNKS="${LIST_OF_CHUNKS}output${CHUNKS}"
 
-ffmpeg -f concat -i list-of-chunks.txt -c copy final-output.mp4 || true
+ffmpeg -f concat -i list-of-chunks.txt -c copy final-${FILENAME}.mp4 || true
 
 rm -f output*.mp4
 
