@@ -28,7 +28,7 @@ pipeline {
     stage('Split file') {
       steps {
         script {
-          sh "./split_file.sh $FILENAME $NUMBER" // in how many chunks do we want to split FILENAME
+          sh "./split_file.sh $FILENAME $NUMBER || true" // in how many chunks do we want to split FILENAME
         }
       }
     }
