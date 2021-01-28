@@ -51,13 +51,13 @@ pipeline {
 def compress(String FileName) {
   return {
     stage(FileName) {
-      build(
-        job: "Pipelines/lectures/compress",
-        propagate: true, wait: true,
-        parameters: [
-          string(name: 'FILENAME', value: "${FileName}"),
-        ]
-      )
+      steps {
+        script {
+          sh "pwd"
+          sh "ls -l"
+          sh "ffmpeg -i $FILENAME -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_$FILENAME"
+        }
+      }
     }
   }
 }
