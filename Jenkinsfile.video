@@ -38,7 +38,7 @@ pipeline {
         script {
           chunkList = [:]
           for( num in 0..params.NUMBER ) {
-            chunkList[num] = compress("output${num}.mp4)
+            chunkList[num] = compress("output${num}.mp4")
           }
 
           parallel chunkList
