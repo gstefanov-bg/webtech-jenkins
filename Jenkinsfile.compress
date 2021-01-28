@@ -2,8 +2,10 @@
 
 pipeline {
   agent {
-    label 'regus'
-    customWorkspace "/home/jenkins/jenkins-agent/workspace/Pipelines/lectures/lecture.convert"
+    label {
+      label 'regus'
+      customWorkspace "/home/jenkins/jenkins-agent/workspace/Pipelines/lectures/lecture.convert"
+    }
   }
 
   options {
