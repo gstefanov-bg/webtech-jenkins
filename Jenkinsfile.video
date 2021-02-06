@@ -10,9 +10,14 @@ pipeline {
   }
 
   parameters {
-    string(defaultValue: '', description: 'Web Server Address', name: 'WEBSERVER')
-    string(defaultValue: '', description: 'Lecture File Name', name: 'FILENAME')
-    string(defaultValue: '', description: 'Number of parts', name: 'NUMBER')
+    string(defaultValue: '192.168.0.', description: 'Web Server Address', name: 'WEBSERVER')
+    string(defaultValue: 'input.mp4', description: 'Lecture File Name', name: 'FILENAME')
+    string(defaultValue: '3', description: 'Number of parts', name: 'NUMBER')
+    choice(choices: '1280x720\n1920x1080', description: 'Resolution', name: 'RESOLUTION')
+    string(defaultValue: '4000k', description: 'Bitrate', name: 'BITRATE')
+    string(defaultValue: '4000k', description: 'Min Bitrate', name: 'MIN_BITRATE')
+    string(defaultValue: '4000k', description: 'Max Bitrate', name: 'MAX_BITRATE')
+    string(defaultValue: '1835k', description: 'Buffer Size', name: 'BUF_SIZE')
   }
 
   stages {
@@ -20,7 +25,7 @@ pipeline {
     stage('Get video file') {
       steps {
         script {
-          sh "wget http://$WEBSERVER/$FILENAME"
+          sh "wget http://$WEBSERVER:8000/$FILENAME"
         }
       }
     }
@@ -38,7 +43,7 @@ pipeline {
         script {
           chunkList = [:]
           for(num = 1; num < 4; num++) {
-            chunkList[num] = compress("output${num}.mp4")
+            chunkList[num] = compress("output${num}.mp4", "${RESOLUTION}", "${BITRATE}", "${MIN_BITRATE}", "${MAX_BITRATE}", "${BUF_SIZE}")
           }
 
           parallel chunkList
@@ -49,7 +54,7 @@ pipeline {
     stage('append chunks') {
       steps {
         script {
-          sh "./concat_files.sh $FILENAME $NUMBER"
+          sh "./concat_files.sh $FILENAME $NUMBER $RESOLUTION"
         }
       }
     }
@@ -57,20 +62,21 @@ pipeline {
     stage('upload file') {
       steps {
         script {
-          sh "rsync final-$FILENAME ..."
+          sh "rsync -v final-$RESOLUTION-$FILENAME jenkins@$WEBSERVER:/home/jenkins/lectures/$RESOLUTION-$FILENAME"
         }
       }
     }
   }
 }
 
-def compress(String FileName) {
+def compress(String fileName, String resolution, String bitrate, String minBitrate, String maxBitrate, String bufferSize) {
   return {
     stage(FileName) {
       script {
         sh "pwd"
         sh "ls -l"
         //sh "ffmpeg -i ${FileName} -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_${FileName}"
+        sh "ffmpeg -i ${fileName} -c:a copy -c:v libx264 -crf 10 -preset ultrafast -s ${resolution} -b ${bitrate} -minrate ${minBitrate} -maxrate ${maxBitrate} -bufsize ${bufferSize} ${resolution}_${fileName}"
         sh "ls -l ${FileName}"
       }
     }

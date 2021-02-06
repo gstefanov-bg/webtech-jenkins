@@ -2,17 +2,18 @@
 
 FILENAME=$1
 CHUNKS=$2
+RESOLUTION=$3
 LIST_OF_CHUNKS=""
 
 for i in $(seq 1 $(($CHUNKS-1)));
 do
-	LIST_OF_CHUNKS="${LIST_OF_CHUNKS}output${i}|"
-	echo "file output${i}.mp4" >> list-of-chunks.txt
+	LIST_OF_CHUNKS="${LIST_OF_CHUNKS}${RESOLUTION}_output${i}|"
+	echo "file ${RESOLUTION}_output${i}.mp4" >> list-of-chunks.txt
 done
 
 LIST_OF_CHUNKS="${LIST_OF_CHUNKS}output${CHUNKS}"
 
-ffmpeg -f concat -i list-of-chunks.txt -c copy final-${FILENAME}.mp4 || true
+ffmpeg -f concat -i list-of-chunks.txt -c copy final-${RESOLUTION}-${FILENAME}.mp4 || true
 
 rm -f output*.mp4
 
