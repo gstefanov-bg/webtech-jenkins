@@ -2,7 +2,7 @@
 
 pipeline {
   agent {
-    label 'regus'
+    label 'video'
   }
 
   options {
@@ -72,12 +72,15 @@ pipeline {
 def compress(String fileName, String resolution, String bitrate, String minBitrate, String maxBitrate, String bufferSize) {
   return {
     stage(FileName) {
+      agent {
+        label 'video'
+      }
       script {
         sh "pwd"
         sh "ls -l"
         //sh "ffmpeg -i ${FileName} -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_${FileName}"
         sh "ffmpeg -i ${fileName} -c:a copy -c:v libx264 -crf 10 -preset ultrafast -s ${resolution} -b ${bitrate} -minrate ${minBitrate} -maxrate ${maxBitrate} -bufsize ${bufferSize} ${resolution}_${fileName}"
-        sh "ls -l ${FileName}"
+        sh "ls -l ${fileName}"
       }
     }
   }
