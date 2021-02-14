@@ -13,7 +13,7 @@ done
 
 LIST_OF_CHUNKS="${LIST_OF_CHUNKS}output${CHUNKS}"
 
-ffmpeg -f concat -i list-of-chunks.txt -c copy final-${RESOLUTION}-${FILENAME}.mp4 || true
+ffmpeg -f concat -i list-of-chunks.txt -c copy final-${RESOLUTION}-${FILENAME} || true
 
 rm -f output*.mp4
 
