@@ -63,6 +63,7 @@ pipeline {
       steps {
         sshagent (credentials: ['jenkins-agents']) {
           sh "rsync -v final-$RESOLUTION-$FILENAME jenkins@$WEBSERVER:/home/jenkins/lectures/$RESOLUTION-$FILENAME"
+          sh "rm $FILENAME $RESOLUTION* final-*"
         }
       }
     }
@@ -73,11 +74,7 @@ def compress(String fileName, String resolution, String bitrate, String minBitra
   return {
     stage(FileName) {
       script {
-        sh "pwd"
-        sh "ls -l"
-        //sh "ffmpeg -i ${FileName} -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy 720p_${FileName}"
         sh "ffmpeg -i ${fileName} -c:a copy -c:v libx264 -crf 10 -preset ultrafast -s ${resolution} -b ${bitrate} -minrate ${minBitrate} -maxrate ${maxBitrate} -bufsize ${bufferSize} -max_muxing_queue_size 9999 ${resolution}_${fileName} || true"
-        sh "ls -l ${fileName}"
       }
     }
   }
