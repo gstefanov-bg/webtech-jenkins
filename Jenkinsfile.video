@@ -61,8 +61,8 @@ pipeline {
 
     stage('upload file') {
       steps {
-        withCredentials([sshUserPrivateKey(credentialsId: "jenkins-agents", keyFileVariable: 'keyfile')]) {
-          sh "rsync -v -e \"ssh -i ${keyfile}\" final-$RESOLUTION-$FILENAME jenkins@$WEBSERVER:/home/jenkins/lectures/$RESOLUTION-$FILENAME"
+        sshagent (credentials: ['jenkins-agents']) {
+          sh "rsync -v final-$RESOLUTION-$FILENAME jenkins@$WEBSERVER:/home/jenkins/lectures/$RESOLUTION-$FILENAME"
         }
       }
     }
