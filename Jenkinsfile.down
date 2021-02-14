@@ -2,7 +2,7 @@
 
 pipeline {
   agent {
-    label 'k3s'
+    label 'k8s'
   }
 
   environment {
