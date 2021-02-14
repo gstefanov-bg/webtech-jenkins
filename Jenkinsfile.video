@@ -72,9 +72,6 @@ pipeline {
 def compress(String fileName, String resolution, String bitrate, String minBitrate, String maxBitrate, String bufferSize) {
   return {
     stage(FileName) {
-      agent {
-        label 'video'
-      }
       script {
         sh "pwd"
         sh "ls -l"
