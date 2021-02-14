@@ -42,7 +42,7 @@ pipeline {
       steps {
         script {
           chunkList = [:]
-          for(num = 1; num <= NUMBER; num++) {
+          for(num = 1; num <= NUMBER.toInteger(); num++) {
             chunkList[num] = compress("output${num}.mp4", "${RESOLUTION}", "${BITRATE}", "${MIN_BITRATE}", "${MAX_BITRATE}", "${BUF_SIZE}")
           }
 
