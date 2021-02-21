@@ -33,10 +33,10 @@ pipeline {
       }
     }
 
-    stage('initialize apps') {
+    stage('initialize application') {
       environment {
         // TODO: we need somewhere "NOT" AWS to store settings
-        HOSTED_ZONE_NAME = "webtech-fmi.bg"
+        HOSTED_ZONE_NAME = "w3a.fmi.uni-sofia.bg"
       }
       steps {
         script {
